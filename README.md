@@ -53,3 +53,15 @@ Furter notes:
   * Valgrind has lots of options, please check them!
   * No, I did not check this on different systems/compilers. So if it
     breaks, you may have to modify the code or setup.py.
+  * If valgrind has bad interaction causing errors during test gathering
+    this may hang pytest. In that case, you may use
+    `--continue-on-collection-errors` as a quick workaround.
+
+Future Additions
+================
+
+Some things that would be easy to add very quickly probably:
+  * I am not quite sure what happens to skipped tests, but
+    a marker to skip only on valgrind may be good. Currently
+    `pytest_valgrind.valgrind.running_on_valgrind()` is exposed
+    and allows to check whether the tests are run inside valgrind.
