@@ -57,15 +57,28 @@ Any valgrind error or memory leak occuring *during* the test will lead to the
 test being recorded as *FAILURE*. You will have to search the valgrind log
 file for the specific error.
 
+As a further example, one may run an individual NumPy test file with the following
+commend (some of these options are not necessary):
+```
+PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python runtests.py -g -t numpy/core/tests/test_dtype.py -- -vv --valgrind --valgrind-log=/tmp/valgrind-output --continue-on-collection-errors
+```
 
 Reported failures and marking tests
 -----------------------------------
 
-This plugin ignores all normal exceptions and replaces them with *KNOWNFAIL*
+This plugin ignores all normal exceptions and replaces them with `KNOWNFAIL`/`xfail`
 right now. It will report failures only for errors/leaks reported by valgrind.
+It seems that known failures that produce valgrind errors are also reported as known failure.
 
 You can mark tests with `pytest.mark.valgrind_known_leak(reason="?!")`
-or `pytest.mark.valgrind_known_error(reason="Oooops")` (or both).
+or `pytest.mark.valgrind_known_error(reason="Oooops")` (or both) to make the test result
+an `xfail` specifically for this plugin and specific to either leaks or other errors
+reported by valgrind.
+
+Not all errors are necessarily due to your own code, sometimes false positives can be reported
+from known good functions. For example `strcmp` can do this if the valgrind suppressions are not
+up to date. Such failures should be fixed with a valgrind suppression file and not using
+pytest markers.
 
 
 Notes, Caveats, and Solutions
@@ -105,7 +118,7 @@ Furter notes:
   * I do not know pytest plugins well (and the documentation is not super
     easy at the time), so a lot of how the pytest things are done can and
     should probably be much done better.
-    
+
 
 I do not like this or have a better version!
 --------------------------------------------
