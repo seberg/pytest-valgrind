@@ -69,8 +69,7 @@ commend (some of these options are not necessary):
 PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python runtests.py -g -t numpy/core/tests/test_dtype.py -- -vv --valgrind --valgrind-log=/tmp/valgrind-output --continue-on-collection-errors
 ```
 
-Options
-^^^^^^^
+### Options
 
 * `--valgrind` enables the plugin.
 * `--valgrind-log=<log_file>` Should be given. This is the same file passed to
