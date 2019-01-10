@@ -68,6 +68,9 @@ class ValgrindChecker(object):
         else:
             self.log_file = None
 
+        self.prev_leaked = 0
+        self.prev_errors = 0
+
     @pytest.hookimpl(hookwrapper=True)
     def pytest_pyfunc_call(self, pyfuncitem):
         sep = b"*" * 70
@@ -79,6 +82,8 @@ class ValgrindChecker(object):
             if self.first_run:
                 print_to_valgrind_log(sep)
                 print_to_valgrind_log(b"Flushing errors before first test:")
+
+                self.first_run = False
             else:
                 # I am not sure this is a smart option, normal python is very
                 # unlikely to leak, and it is slow to check...
@@ -91,8 +96,8 @@ class ValgrindChecker(object):
             else:
                 # TODO: should print an internal error.
                 raise RuntimeError("Garbage collection did not settle!?")
-            before_leaked = do_leak_check()
-            before_errors = get_valgrind_num_errs()
+            self.prev_leaked = do_leak_check()
+            self.prev_errors = get_valgrind_num_errs()
 
             # Read new info in the log file (no need to read it later)
             if self.log_file:
@@ -120,8 +125,12 @@ class ValgrindChecker(object):
 
         print_to_valgrind_log(b"\n" + sep)
 
-        error = after_errors - before_errors > 0
-        leak = after_leaked - before_leaked > 0
+        error = after_errors - self.prev_errors > 0
+        leak = after_leaked - self.prev_leaked > 0
+
+        # Need to get the errors again, since leakage will increment it:
+        self.prev_errors = get_valgrind_num_errs()
+        self.prev_leaked = after_leaked
 
         # Check for any marks about the test run:
         if any(pyfuncitem.iter_markers("valgrind_known_error")):
@@ -141,7 +150,7 @@ class ValgrindChecker(object):
         else:
             valgrind_info = (
                 "Check valgrind log for details. Test ID is:\n{}".format(
-                        test_identifier_string))
+                        test_identifier_string.decode('utf8')))
 
         if not error and not leak:
             if outcome.excinfo is not None:
