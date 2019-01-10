@@ -48,7 +48,7 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     valgrind = config.getvalue("valgrind")
     if valgrind:
-        if 0 and not running_valgrind():
+        if not running_valgrind():
             raise RuntimeError(
                 "pytest is configured to used valgrind, but was not started "
                 "within the valgrind virtual machine!\n"
