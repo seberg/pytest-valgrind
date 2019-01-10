@@ -35,10 +35,9 @@ a C compiler as well as typical valgrind installation (`valgrind/valgrind.h`).
 To then use it, use a normal pytest invocation giving the `--valgrind` option,
 however, you also need to run everything in valgrind itself.
 
-The easiest way to do this is (requires python 3.6 I believe). There
-is an example test run in the example folder (which fails the valgrind tests),
-as noted in the tests you can run it using:
-
+The easiest way to do this is (requires python 3.6 I believe) is the sample
+invocation below (or similar pytest command). There is an example test in the
+`example` subfolder, which includes a similar invocation as documentation:
 ```
 PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output \
     python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output
@@ -48,8 +47,11 @@ Note that the `PYTHONMALLOC=malloc` command is crucial (and only works on newer
 python versions). Alternatively, a python debug build with the `--valgrind`
 option can be used. If neither is used, the output will be useless due to
 false positives by python (suppression could be added, but are less reliable).
+*It is the responsibility of the caller to pass the correct valgrind arguments.
+you must pass `--show-leak-kinds=definite` and should use `--log-file` as above!*
 
-Note that you should provide a log file in this invocation. Any normal failures
+You should provide a log file in this invocation and pass it into pytest. Otherwise
+`pytest-valgrind` will not be able to provide a nice error report. Any normal failures
 will be skipped. For example in numpy, typically the floating point errors
 fail to report, which causes test failures.
 
