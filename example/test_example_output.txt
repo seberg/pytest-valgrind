@@ -3,16 +3,17 @@ platform linux -- Python 3.7.2, pytest-4.1.0, py-1.7.0, pluggy-0.8.0 -- /usr/bin
 cachedir: .pytest_cache
 rootdir: /home/sebastian/forks/pytest-valgrind, inifile:
 plugins: valgrind-0.0.0
-collected 8 items                                                                                  
+collected 9 items                                                                                  
 
-test_example.py::test_all_good PASSED                                                        [ 12%]
-test_example.py::test_fails_but_valgrind_good xfail                                          [ 25%]
-test_example.py::test_valgrind_error FAILED                                                  [ 37%]
-test_example.py::test_valgrind_leak FAILED                                                   [ 50%]
-test_example.py::test_valgrind_error_and_leak FAILED                                         [ 62%]
-test_example.py::test_valgrind_leak_ignored xfail                                            [ 75%]
-test_example.py::test_valgrind_error_ignored xfail                                           [ 87%]
-test_example.py::test_valgrind_leak_ignored_but_errors_as_well FAILED                        [100%]
+test_example.py::test_all_good PASSED                                                        [ 11%]
+test_example.py::test_fails_but_valgrind_good xfail                                          [ 22%]
+test_example.py::test_valgrind_error FAILED                                                  [ 33%]
+test_example.py::test_valgrind_leak FAILED                                                   [ 44%]
+test_example.py::test_valgrind_error_and_leak FAILED                                         [ 55%]
+test_example.py::test_valgrind_leak_ignored xfail                                            [ 66%]
+test_example.py::test_valgrind_error_ignored xfail                                           [ 77%]
+test_example.py::test_valgrind_leak_ignored_but_errors_as_well FAILED                        [ 88%]
+test_example.py::test_another_good_test PASSED                                               [100%]
 
 ============================================= FAILURES =============================================
 _______________________________________ test_valgrind_error ________________________________________
@@ -20,148 +21,148 @@ _______________________________________ test_valgrind_error ____________________
 
 Valgrind has detected an error:
 
-**16271** 
-**16271** **********************************************************************
-**16271** example/test_example.py::test_valgrind_error
-**16271** **********************************************************************
-==16271== Conditional jump or move depends on uninitialised value(s)
-==16271==    at 0x4B4F9A3: PyBool_FromLong (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x828C411: access_invalid (valgrind.c:60)
-==16271==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271== 
-==16271== LEAK SUMMARY:
-==16271==    definitely lost: 148 (+0) bytes in 1 (+0) blocks
-==16271==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
-==16271==      possibly lost: 5,250,365 (+108,698) bytes in 50,377 (+314) blocks
-==16271==    still reachable: 11,544,856 (+31,808) bytes in 91,057 (+356) blocks
-==16271==                       of which reachable via heuristic:
-==16271==                         newarray           : 75 (+0) bytes in 1 (+0) blocks
-==16271==         suppressed: 0 (+0) bytes in 0 (+0) blocks
-==16271== Reachable blocks (those to which a pointer was found) are not shown.
-==16271== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==16271== 
-**16271** 
-**16271** **********************************************************************
+**20353** 
+**20353** **********************************************************************
+**20353** example/test_example.py::test_valgrind_error
+**20353** **********************************************************************
+==20353== Conditional jump or move depends on uninitialised value(s)
+==20353==    at 0x4B4F9A3: PyBool_FromLong (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x828C411: access_invalid (valgrind.c:60)
+==20353==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353== 
+==20353== LEAK SUMMARY:
+==20353==    definitely lost: 148 (+0) bytes in 1 (+0) blocks
+==20353==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
+==20353==      possibly lost: 5,271,272 (+108,478) bytes in 50,430 (+323) blocks
+==20353==    still reachable: 11,550,177 (+30,986) bytes in 91,098 (+345) blocks
+==20353==                       of which reachable via heuristic:
+==20353==                         newarray           : 93 (+0) bytes in 2 (+0) blocks
+==20353==         suppressed: 0 (+0) bytes in 0 (+0) blocks
+==20353== Reachable blocks (those to which a pointer was found) are not shown.
+==20353== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==20353== 
+**20353** 
+**20353** **********************************************************************
 
 ________________________________________ test_valgrind_leak ________________________________________
 [VALGRIND LEAK]
 
 Valgrind has detected a memory leak:
 
-**16271** 
-**16271** **********************************************************************
-**16271** example/test_example.py::test_valgrind_leak
-**16271** **********************************************************************
-==16271== 8 (+8) bytes in 1 (+1) blocks are definitely lost in loss record 25 of 12,221
-==16271==    at 0x483777F: malloc (vg_replace_malloc.c:299)
-==16271==    by 0x828C3DE: create_leak (valgrind.c:42)
-==16271==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271== 
-==16271== LEAK SUMMARY:
-==16271==    definitely lost: 156 (+8) bytes in 2 (+1) blocks
-==16271==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
-==16271==      possibly lost: 5,250,803 (+438) bytes in 50,376 (-1) blocks
-==16271==    still reachable: 11,549,543 (+4,687) bytes in 91,082 (+25) blocks
-==16271==                       of which reachable via heuristic:
-==16271==                         newarray           : 75 (+0) bytes in 1 (+0) blocks
-==16271==         suppressed: 0 (+0) bytes in 0 (+0) blocks
-==16271== Reachable blocks (those to which a pointer was found) are not shown.
-==16271== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==16271== 
-**16271** 
-**16271** **********************************************************************
+**20353** 
+**20353** **********************************************************************
+**20353** example/test_example.py::test_valgrind_leak
+**20353** **********************************************************************
+==20353== 8 (+8) bytes in 1 (+1) blocks are definitely lost in loss record 27 of 12,265
+==20353==    at 0x483777F: malloc (vg_replace_malloc.c:299)
+==20353==    by 0x828C3DE: create_leak (valgrind.c:42)
+==20353==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353== 
+==20353== LEAK SUMMARY:
+==20353==    definitely lost: 156 (+8) bytes in 2 (+1) blocks
+==20353==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
+==20353==      possibly lost: 5,271,770 (+498) bytes in 50,430 (+0) blocks
+==20353==    still reachable: 11,554,804 (+4,627) bytes in 91,122 (+24) blocks
+==20353==                       of which reachable via heuristic:
+==20353==                         newarray           : 93 (+0) bytes in 2 (+0) blocks
+==20353==         suppressed: 0 (+0) bytes in 0 (+0) blocks
+==20353== Reachable blocks (those to which a pointer was found) are not shown.
+==20353== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==20353== 
+**20353** 
+**20353** **********************************************************************
 
 ___________________________________ test_valgrind_error_and_leak ___________________________________
 [VALGRIND ERROR+LEAK]
 
 Valgrind detected both an error(s) and a leak(s):
 
-**16271** 
-**16271** **********************************************************************
-**16271** example/test_example.py::test_valgrind_error_and_leak
-**16271** **********************************************************************
-==16271== 16 (+8) bytes in 2 (+1) blocks are definitely lost in loss record 44 of 12,214
-==16271==    at 0x483777F: malloc (vg_replace_malloc.c:299)
-==16271==    by 0x828C3DE: create_leak (valgrind.c:42)
-==16271==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271== 
-==16271== LEAK SUMMARY:
-==16271==    definitely lost: 164 (+8) bytes in 3 (+1) blocks
-==16271==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
-==16271==      possibly lost: 5,250,679 (-124) bytes in 50,376 (+0) blocks
-==16271==    still reachable: 11,553,877 (+4,334) bytes in 91,103 (+21) blocks
-==16271==                       of which reachable via heuristic:
-==16271==                         newarray           : 75 (+0) bytes in 1 (+0) blocks
-==16271==         suppressed: 0 (+0) bytes in 0 (+0) blocks
-==16271== Reachable blocks (those to which a pointer was found) are not shown.
-==16271== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==16271== 
-**16271** 
-**16271** **********************************************************************
+**20353** 
+**20353** **********************************************************************
+**20353** example/test_example.py::test_valgrind_error_and_leak
+**20353** **********************************************************************
+==20353== 16 (+8) bytes in 2 (+1) blocks are definitely lost in loss record 40 of 12,256
+==20353==    at 0x483777F: malloc (vg_replace_malloc.c:299)
+==20353==    by 0x828C3DE: create_leak (valgrind.c:42)
+==20353==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353== 
+==20353== LEAK SUMMARY:
+==20353==    definitely lost: 164 (+8) bytes in 3 (+1) blocks
+==20353==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
+==20353==      possibly lost: 5,271,678 (-92) bytes in 50,430 (+0) blocks
+==20353==    still reachable: 11,558,882 (+4,078) bytes in 91,143 (+21) blocks
+==20353==                       of which reachable via heuristic:
+==20353==                         newarray           : 93 (+0) bytes in 2 (+0) blocks
+==20353==         suppressed: 0 (+0) bytes in 0 (+0) blocks
+==20353== Reachable blocks (those to which a pointer was found) are not shown.
+==20353== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==20353== 
+**20353** 
+**20353** **********************************************************************
 
 __________________________ test_valgrind_leak_ignored_but_errors_as_well ___________________________
 [VALGRIND ERROR+LEAK]
 
 Valgrind detected both an error(s) and a leak(s):
 
-**16271** 
-**16271** **********************************************************************
-**16271** example/test_example.py::test_valgrind_leak_ignored_but_errors_as_well
-**16271** **********************************************************************
-==16271== 32 (+8) bytes in 4 (+1) blocks are definitely lost in loss record 1,237 of 12,231
-==16271==    at 0x483777F: malloc (vg_replace_malloc.c:299)
-==16271==    by 0x828C3DE: create_leak (valgrind.c:42)
-==16271==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
-==16271==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
-==16271== 
-==16271== LEAK SUMMARY:
-==16271==    definitely lost: 180 (+8) bytes in 5 (+1) blocks
-==16271==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
-==16271==      possibly lost: 5,256,885 (+2,152) bytes in 50,400 (+10) blocks
-==16271==    still reachable: 11,594,129 (+16,120) bytes in 91,450 (+157) blocks
-==16271==                       of which reachable via heuristic:
-==16271==                         newarray           : 75 (+0) bytes in 1 (+0) blocks
-==16271==         suppressed: 0 (+0) bytes in 0 (+0) blocks
-==16271== Reachable blocks (those to which a pointer was found) are not shown.
-==16271== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==16271== 
-**16271** 
-**16271** **********************************************************************
+**20353** 
+**20353** **********************************************************************
+**20353** example/test_example.py::test_valgrind_leak_ignored_but_errors_as_well
+**20353** **********************************************************************
+==20353== 32 (+8) bytes in 4 (+1) blocks are definitely lost in loss record 1,236 of 12,282
+==20353==    at 0x483777F: malloc (vg_replace_malloc.c:299)
+==20353==    by 0x828C3DE: create_leak (valgrind.c:42)
+==20353==    by 0x4BC2860: _PyMethodDef_RawFastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2A00: _PyCFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C38E94: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7CBEA: _PyFunction_FastCallDict (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C361A9: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4B7BB58: _PyEval_EvalCodeWithName (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4BC2181: _PyFunction_FastCallKeywords (in /usr/lib/libpython3.7m.so.1.0)
+==20353==    by 0x4C358EC: _PyEval_EvalFrameDefault (in /usr/lib/libpython3.7m.so.1.0)
+==20353== 
+==20353== LEAK SUMMARY:
+==20353==    definitely lost: 180 (+8) bytes in 5 (+1) blocks
+==20353==    indirectly lost: 0 (+0) bytes in 0 (+0) blocks
+==20353==      possibly lost: 5,277,311 (+1,983) bytes in 50,448 (+9) blocks
+==20353==    still reachable: 11,600,279 (+16,862) bytes in 91,497 (+159) blocks
+==20353==                       of which reachable via heuristic:
+==20353==                         newarray           : 93 (+0) bytes in 2 (+0) blocks
+==20353==         suppressed: 0 (+0) bytes in 0 (+0) blocks
+==20353== Reachable blocks (those to which a pointer was found) are not shown.
+==20353== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==20353== 
+**20353** 
+**20353** **********************************************************************
 
-========================== 4 failed, 1 passed, 3 xfailed in 9.14 seconds ===========================
+========================== 4 failed, 2 passed, 3 xfailed in 10.61 seconds ==========================
 

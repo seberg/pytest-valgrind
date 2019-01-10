@@ -56,3 +56,8 @@ def test_valgrind_error_ignored():
 def test_valgrind_leak_ignored_but_errors_as_well():
     create_leak()
     access_invalid()
+
+
+def test_another_good_test():
+    # Just to show that the old leaks are obviously not still found.
+    pass
