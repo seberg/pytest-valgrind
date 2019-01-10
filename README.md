@@ -8,8 +8,10 @@ When might I want to use this?:
   * You have a non-trivial C-extention and should really check it with valgrind.
   * You have a non-trivial C-extention module that does memory allocations
     and might leak memory.
-  * You are interested in more then reference count leaks (other tools should
-    be better), or hope valgrind can give you some information on the leak.
+  * You are interested not only in reference count leaks (for which other tools
+    are probably be better). Or hope valgrind can give you some information on the leak.
+  * You are looking for a simple way to get an overview over which tests cause
+    errors detected by valgrind.
 
 Why not just run the test in valgrind?:
   * Memory leak checking on valgrind is normally done only at exit. This
