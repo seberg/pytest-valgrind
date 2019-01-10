@@ -7,48 +7,52 @@ from .valgrind import (
 # Debuggin/testing helpers:
 from .valgrind import access_invalid, create_leak
 
+
+valgrind_option_help = """\
+Runs valgrind checks after every test and replaces the actual results with
+valgrind analysis result. One main point is that it enforces regular checks
+for memory leaks, to allow to find the leaking test quicker.
+"""
+
+# Memory checking is seriously slow!
+memory_check_option_help = """\
+Check for memory leaks before a test. Leaks are not expected between
+test runs, but if it happens they modify the following test, so this
+option tries to mitigate this by running the memcheck also before (and
+does not report a failure if it already occured before).
+NOTE: The memchecker is always flushed once before the first test!
+"""
+
+# Unfortunately, it did not seem obvious if I can get to the log file
+# from within the virtual machine. But this works....
+valgrind_log_file_help = """\
+The valgrind log file. If passed in the plugin will extract the actual
+valgrind errors and replace the traceback with the valgrind output.
+"""
+
+
 def pytest_addoption(parser):
     group = parser.getgroup('valgrind')
+
     group.addoption(
-        '--valgrind',
-        action='store_true',
-        dest='valgrind',
-        help='''\
-Runs valgrind checks after every test and replaces the actual results with
-valgrind analysis result.
-For this to make sense, it has to run with valgrind. Valgrind options
-can be used normally. Please check the readme for some pointers, this
-is very much a minimal tool and hopefully more knowledgeable users may
-extend it or create better ones.
+        '--valgrind', action='store_true', dest='valgrind',
+        help=valgrind_option_help)
 
-It currently reports failed tests (without valgrind errors) as skipped.
+    group.addoption(
+        '--memcheck-before-func', action='store_true',
+        dest="memcheck_before", help=memory_check_option_help)
 
-If you are only interested in errors and not memory leaks, you can just
-run your program through valgrind directly with a high level of verbosity.
-However, this plugin will check for memory leaks after every tests which can
-help you narrow down the failing test.
-
-Unlike running directly, you should ask valgrind to write somewhere else.
-The valgrind output will include information about which functions were called.
-The pytest output itself will then give you the failed functions and you
-can search for them.
-
-This could probably be set up nicer, but it works. It has the advantage,
-that finding the broken test (and after that its output) gets much easier.
-''')
+    group.addoption('--valgrind-log', action='store', dest="valgrind_log",
+                    help=valgrind_log_file_help)
 
 def pytest_configure(config):
     valgrind = config.getvalue("valgrind")
     if valgrind:
-        if not running_valgrind():
+        if 0 and not running_valgrind():
             raise RuntimeError(
                 "pytest is configured to used valgrind, but was not started "
-                "within valgrind!\n"
-                "Please run with"
-                "`valgrind --show-leak-kinds=definite --log-file=valgrind-output -- your command`. "
-                "or a similar invocation.\nThe one above send valgrind information"
-                "to an additional log file and adds test information to it, so"
-                "you can search for those tests that failed.")
+                "within the valgrind virtual machine!\n"
+                "Please check the README for the correct invocation.")
 
         checker = ValgrindChecker(config)
         config.pluginmanager.register(checker, 'valgrind_checker')
@@ -56,57 +60,132 @@ def pytest_configure(config):
 
 class ValgrindChecker(object):
     def __init__(self, config):
-        pass
+        self.memcheck_before = config.getvalue("memcheck_before")
+        self.first_run = True
+        log_file = config.getvalue("valgrind_log")
+        if log_file:
+            self.log_file = open(log_file)
+        else:
+            self.log_file = None
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_pyfunc_call(self, pyfuncitem):
-        # TODO: Should replace this with an internal error probably.
-        #       something that prints noisily on the normal output.
-        print_to_valgrind_log(b"Preparing for next function call "
-                              b"(Leaks here occured between function calls)")
+        sep = b"*" * 70
 
-        gc.collect()  # force a garbage collection
-        before_leaked = do_leak_check()
-        before_errors = get_valgrind_num_errs()
 
-        print_to_valgrind_log(
-            b"\n**************************************************************")
-        print_to_valgrind_log(pyfuncitem.nodeid.encode("utf8"))
-        print_to_valgrind_log(
-            b"**************************************************************")
+        if self.first_run or self.memcheck_before:
+            # TODO: This could in principle hide import time errors.
+            #       Possibly, should run the first one in __init__.
+            if self.first_run:
+                print_to_valgrind_log(sep)
+                print_to_valgrind_log(b"Flushing errors before first test:")
+            else:
+                # I am not sure this is a smart option, normal python is very
+                # unlikely to leak, and it is slow to check...
+                print_to_valgrind_log(b"Preparing for next function call "
+                                      b"(Leaks here occured between tests)")
+
+            for i in range(20):
+                if gc.collect() == 0:
+                    break
+            else:
+                # TODO: should print an internal error.
+                raise RuntimeError("Garbage collection did not settle!?")
+            before_leaked = do_leak_check()
+            before_errors = get_valgrind_num_errs()
+
+            # Read new info in the log file (no need to read it later)
+            if self.log_file:
+                self.log_file.read()
+
+        print_to_valgrind_log(b"\n" + sep)
+
+        test_identifier_string = pyfuncitem.nodeid.encode("utf8")
+        print_to_valgrind_log(test_identifier_string)
+        print_to_valgrind_log(sep)
 
         outcome = yield
-        # create_leak()
-        # access_invalid()
+
+        # Do this before, maybe errors can occur during garbage collection,
+        # and they are probably due to the previous test as well.
+        for i in range(20):
+            if gc.collect() == 0:
+                break
+        else:
+            # TODO: should print an internal error.
+            raise RuntimeError("Garbage collection did not settle!?")
 
         after_errors = get_valgrind_num_errs()
-        gc.collect()  # for a garbage collection
         after_leaked = do_leak_check()
 
-        print_to_valgrind_log(
-            b"\n**************************************************************")
+        print_to_valgrind_log(b"\n" + sep)
 
         error = after_errors - before_errors > 0
         leak = after_leaked - before_leaked > 0
 
-        if error and leak:
-            pytest.fail("[VALGRIND ERROR+LEAK]", pytrace=False)
+        # Check for any marks about the test run:
+        if any(pyfuncitem.iter_markers("valgrind_known_error")):
+            known_error = True
+        else:
+            known_error = False
 
-            outcome.excinfo((RuntimeError, "error + memory leak",
-                             "Both errors and a memory leak seem to have "
-                             "occured. Pleaes check valgrind output."))
+        if any(pyfuncitem.iter_markers("valgrind_known_leak")):
+            known_leak = True
+        else:
+            known_leak = False
+
+        if self.log_file is not None:
+            # This in a sense silly, doing it in the virtual machine is just
+            # slow. But lets hope there is not much output ;)
+            valgrind_info = self._fetch_tests_valgrind_log()
+        else:
+            valgrind_info = (
+                "Check valgrind log for details. Test ID is:\n{}".format(
+                        test_identifier_string))
+
+        if not error and not leak:
+            if outcome.excinfo is not None:
+                # Do not care about actual errors, this likely not quite correct
+                # I am not sure this is right, since maybe there can be error
+                # returns without `excinfo`?
+                pytest.xfail("Error, but valgrind clean, using xfail.")
+
+                outcome.excinfo = None
+                outcome.force_result(True)
+            return
+
+        # A valgrind error occured, so report it (unless it is known failure).
+        use_xfail = False
+
+        if error and leak:
+            type = "[VALGRIND ERROR+LEAK]"
+            msg = ("Valgrind detected both an error(s) and a leak(s):")
+            if known_error and known_leak:
+                use_xfail = True
+
         elif error:
-            pytest.fail("[VALGRIND ERROR]", pytrace=False)
-            outcome.excinfo((RuntimeError, "error",
-                             "A valgrind error occured, please check "
-                             "valgrind output."))
+            type = "[VALGRIND ERROR]"
+            msg = ("Valgrind has detected an error:")
+            if known_error:
+                use_xfail = True
+
         elif leak:
-            pytest.fail("[VALGRIND LEAK]", pytrace=False)
-            outcome.excinfo((RuntimeError, "memory leak",
-                             "A memory leak occured. Please check valgrind"
-                             "output."))
-        elif outcome.excinfo is not None:
-            # Do not care about actual errors, this likely not quite correct.
-            pytest.skip("Error, but valgrind clean, hacking xfail.")
-            outcome.excinfo = None
+            type = "[VALGRIND LEAK]"
+            msg = ("Valgrind has detected a memory leak:")
+            if known_leak:
+                use_xfail = True
+
+        full_message = "{}\n\n{}\n\n{}".format(type, msg, valgrind_info)
+        if use_xfail:
+            pytest.xfail(full_message)
             outcome.force_result(True)
+        else:
+            pytest.fail(full_message, pytrace=False)
+
+    def _fetch_tests_valgrind_log(self):
+        """Read new results from the valgrind log. Should probably parse the
+        log at some point...
+        """
+        new_output = self.log_file.read()
+
+        return new_output
