@@ -1,4 +1,5 @@
 import pytest
+import gc
 
 from .valgrind import (
     running_valgrind, get_valgrind_num_errs, print_to_valgrind_log,
@@ -63,6 +64,8 @@ class ValgrindChecker(object):
         #       something that prints noisily on the normal output.
         print_to_valgrind_log(b"Preparing for next function call "
                               b"(Leaks here occured between function calls)")
+
+        gc.collect()  # force a garbage collection
         before_leaked = do_leak_check()
         before_errors = get_valgrind_num_errs()
 
@@ -77,6 +80,7 @@ class ValgrindChecker(object):
         # access_invalid()
 
         after_errors = get_valgrind_num_errs()
+        gc.collect()  # for a garbage collection
         after_leaked = do_leak_check()
 
         print_to_valgrind_log(

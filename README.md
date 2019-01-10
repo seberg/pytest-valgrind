@@ -18,8 +18,7 @@ however, you also need to run everything in valgrind itself.
 The easiest way to do this is (requires python 3.6 I believe):
 
 ```
-PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=<some file> python -m pytest -v
---valgrind
+PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=<some file> python -m pytest -v --valgrind
 ```
 Note that the `PYTHONMALLOC=malloc` command is crucial (and only works on newer
 python versions). Alternatively, a python debug build with the `--valgrind`
@@ -45,6 +44,7 @@ is a repetition of a previous one and thus hidden.
 Furter notes:
 
   * At this time, this is practically untested.
+  * Testing leaks this often probably slows down testing even more.
   * It does not seem too elegant, if you know a nice way to fetch the
     valgrind output to include it into the pytest report, please tell
     me.
@@ -56,12 +56,40 @@ Furter notes:
   * If valgrind has bad interaction causing errors during test gathering
     this may hang pytest. In that case, you may use
     `--continue-on-collection-errors` as a quick workaround.
+  * The tool runs the garbage collector before every leak check.
+    This is done only once though (gc runs may need longer to
+    settle, could be fixed to iterate until no change occurs).
 
 Future Additions
-================
+----------------
 
 Some things that would be easy to add very quickly probably:
   * I am not quite sure what happens to skipped tests, but
     a marker to skip only on valgrind may be good. Currently
     `pytest_valgrind.valgrind.running_on_valgrind()` is exposed
     and allows to check whether the tests are run inside valgrind.
+
+
+Example: NumPy
+==============
+
+As an example, after installation of the pytest plugin, you can run
+the numpy test suit with the following command:
+```
+PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=valgrind-output python runtests.py -- -vv --valgrind --continue-on-collection-errors
+```
+(do create an alias for much of the command)
+
+This will give you some error, since `-vv` is given, it prints the
+(valgrind) failing tests immediately. You can then search the
+`valgrind-output` file for the exact test.
+
+Either extract the exact test, or rerun the specific one using the
+`-t` flag to `runtest.py` (before the `--` part). In rare cases
+numpy's internal cache could mean results differing between a single
+test and multiple tests.
+
+If hunting for leaks, you could probably add
+`pytest_valgrind.valgrind.do_leak_check()` calls to narrow it down
+further (although many leaks will require the deletion of python
+objects and possible one or more garbage collector runs).
