@@ -5,13 +5,15 @@
 
 
 PyObject *
-running_valgrind(PyObject *self, PyObject *args) {
+running_valgrind(PyObject *self, PyObject *args)
+{
     return PyLong_FromUnsignedLong(RUNNING_ON_VALGRIND);
 }
 
 
 PyObject *
-get_valgrind_num_errs(PyObject *self, PyObject *args) {
+get_valgrind_num_errs(PyObject *self, PyObject *args)
+{
     unsigned long invalid_access;
 
     invalid_access = VALGRIND_COUNT_ERRORS;
@@ -22,7 +24,7 @@ get_valgrind_num_errs(PyObject *self, PyObject *args) {
 
 PyObject *
 do_leak_check(PyObject *self, PyObject *args)
- {
+{
     unsigned long leaked, dubious, reachable, suppressed;
 
     VALGRIND_DO_ADDED_LEAK_CHECK;
@@ -74,7 +76,7 @@ print_to_valgrind_log(PyObject *self, PyObject *arg)
 }
 
 
-static PyMethodDef ValgrindMethods[] = {
+static PyMethodDef valgrind_methods[] = {
     {"running_valgrind",  running_valgrind, METH_NOARGS,
         "Probe if valgrind exists."},
     {"get_valgrind_num_errs",  get_valgrind_num_errs, METH_NOARGS,
@@ -97,7 +99,7 @@ static struct PyModuleDef valgrindmodule = {
     "valgrind",
     NULL,
     -1,
-    ValgrindMethods,
+    valgrind_methods,
 };
 
 PyMODINIT_FUNC

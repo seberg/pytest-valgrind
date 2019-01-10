@@ -23,8 +23,10 @@ Why not just run the test in valgrind?:
 Why should I not use this?:
   * It is a a hack with you passing in the valgrind log file to pytest
     (if you want a helpful error summary).
-  * It runs the memory check very often (currently cannot be disabled)
-    and thus is even slower then a typical valgrind run.
+  * The error reporting probably has some quirks and hides normal errors.
+  * You want to inspect the full valgrind information and this way you are
+    more likely to miss errors that only show up between tests (e.g. module
+    import/teardown).
 
 
 How to use the plugin
@@ -66,6 +68,20 @@ commend (some of these options are not necessary):
 ```
 PYTHONMALLOC=malloc valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python runtests.py -g -t numpy/core/tests/test_dtype.py -- -vv --valgrind --valgrind-log=/tmp/valgrind-output --continue-on-collection-errors
 ```
+
+Options
+^^^^^^^
+
+* `--valgrind` enables the plugin.
+* `--valgrind-log=<log_file>` Should be given. This is the same file passed to
+  valgrind as `--log-file=<log_file>`. If not given, the error reports do not
+  include any valgrind output.
+* `--no-memcheck` will disable checking for memory leaks after every function
+  call (or actually at all). If you are sure there are no leaks, this might
+  speed up execution.
+* `--memcheck-before-func` will run a memory check before each test call. This
+  should not be necessary, so maybe should be removed again.
+
 
 Reported failures and marking tests
 -----------------------------------

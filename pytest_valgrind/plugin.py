@@ -14,6 +14,13 @@ valgrind analysis result. One main point is that it enforces regular checks
 for memory leaks, to allow to find the leaking test quicker.
 """
 
+# Unfortunately, it did not seem obvious if I can get to the log file
+# from within the virtual machine. But this works....
+valgrind_log_file_help = """\
+The valgrind log file. If passed in the plugin will extract the actual
+valgrind errors and replace the traceback with the valgrind output.
+"""
+
 # Memory checking is seriously slow!
 memory_check_option_help = """\
 Check for memory leaks before a test. Leaks are not expected between
@@ -23,11 +30,9 @@ does not report a failure if it already occured before).
 NOTE: The memchecker is always flushed once before the first test!
 """
 
-# Unfortunately, it did not seem obvious if I can get to the log file
-# from within the virtual machine. But this works....
-valgrind_log_file_help = """\
-The valgrind log file. If passed in the plugin will extract the actual
-valgrind errors and replace the traceback with the valgrind output.
+no_memcheck_help = """\
+Disables memory checking, this should make testing faster if you are sure
+there are no memory leaks.
 """
 
 
@@ -38,12 +43,17 @@ def pytest_addoption(parser):
         '--valgrind', action='store_true', dest='valgrind',
         help=valgrind_option_help)
 
+    group.addoption('--valgrind-log', action='store', dest="valgrind_log",
+                    help=valgrind_log_file_help)
+
     group.addoption(
         '--memcheck-before-func', action='store_true',
         dest="memcheck_before", help=memory_check_option_help)
 
-    group.addoption('--valgrind-log', action='store', dest="valgrind_log",
-                    help=valgrind_log_file_help)
+    group.addoption(
+        '--no-memcheck', action='store_true',
+        dest="disable_memcheck", help=no_memcheck_help)
+
 
 def pytest_configure(config):
     valgrind = config.getvalue("valgrind")
@@ -60,8 +70,16 @@ def pytest_configure(config):
 
 class ValgrindChecker(object):
     def __init__(self, config):
-        self.memcheck_before = config.getvalue("memcheck_before")
-        self.first_run = True
+        self.no_memcheck = config.getvalue("disable_memcheck")
+        if self.no_memcheck:
+            # Just disable checking before completely.
+            # TODO: Might be nicer to use a dummy method that just returns 0.
+            self.first_run = False
+            self.memcheck_before = False
+        else:
+            self.memcheck_before = config.getvalue("memcheck_before")
+            self.first_run = True
+
         log_file = config.getvalue("valgrind_log")
         if log_file:
             self.log_file = open(log_file)
@@ -121,7 +139,10 @@ class ValgrindChecker(object):
             raise RuntimeError("Garbage collection did not settle!?")
 
         after_errors = get_valgrind_num_errs()
-        after_leaked = do_leak_check()
+        if not self.no_memcheck:
+            after_leaked = do_leak_check()
+        else:
+            after_leaked = 0
 
         print_to_valgrind_log(b"\n" + sep)
 
