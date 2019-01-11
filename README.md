@@ -28,6 +28,10 @@ Why should I not use this?:
     more likely to miss errors that only show up between tests (e.g. module
     import/teardown).
 
+**Testing for memory leaks after every test seems to be a bit flaky and
+increadibly slow. Also I do not know the details well enough to be sure that
+there are no other issues.**
+
 
 How to use the plugin
 ---------------------
