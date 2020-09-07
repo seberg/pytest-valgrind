@@ -57,15 +57,17 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     valgrind = config.getvalue("valgrind")
-    if valgrind:
-        if not running_valgrind():
-            raise RuntimeError(
-                "pytest is configured to used valgrind, but was not started "
-                "within the valgrind virtual machine!\n"
-                "Please check the README for the correct invocation.")
+    if not valgrind:
+        return
 
-        checker = ValgrindChecker(config)
-        config.pluginmanager.register(checker, 'valgrind_checker')
+    if not running_valgrind():
+        raise RuntimeError(
+            "pytest is configured to used valgrind, but was not started "
+            "within the valgrind virtual machine!\n"
+            "Please check the README for the correct invocation.")
+
+    checker = ValgrindChecker(config)
+    config.pluginmanager.register(checker, 'valgrind_checker')
 
 
 class ValgrindChecker(object):
@@ -80,14 +82,82 @@ class ValgrindChecker(object):
             self.memcheck_before = config.getvalue("memcheck_before")
             self.first_run = True
 
-        log_file = config.getvalue("valgrind_log")
-        if log_file:
-            self.log_file = open(log_file)
+            # This is somewhat confusing. Valgrind, by default, reports errors
+            # for "possible" leaks. However, Python uses "interior-pointers"
+            # for objects with cyclic garbage collection support.
+            # Valgrind counts these as "possible" leaks meaning that we would
+            # have a huge amount of false positives (valgrind has hardcoded
+            # heuristics for some cases, but none seem to match Python).
+            # Until a better solution is found, the solution here is to ignore
+            # possible leaks. In the first version I did this by manually
+            # counting leaks, instead of enforcing the use of:
+            #     --errors-for-leak-kinds=definite
+            # So we get the below sanity check: If the user passed the above
+            # command to valgrind, possible leaks are not errors and we can
+            # use the errors as reported by valgrind. If the user did not pass
+            # the above (or similar?) command, we manually count leaks and use
+            # that instead.
+            # The main difference should be that directly counting leaks will
+            # also report indirectly lost memory, while the above command
+            # ignores them. Effectively, we ignore the valgrind setting and
+            # enforce:
+            #     --errors-for-leak-kinds=definite,indirect
+
+            # Disable the GC just in case it might confuse things if it runs
+            # while probing the error reporting behaviour:
+            gc.disable()
+            leaks = do_leak_check()
+            errors = get_valgrind_num_errs()
+            # This will use "interior-pointers" (possible leak):
+            obj = object()
+            new_leaks = do_leak_check() - leaks
+            new_errors = get_valgrind_num_errs() - errors
+            gc.enable()
+            if new_leaks != 0:
+                # There be no new leaks for the above simple code
+                raise RuntimeError(
+                        "Sanity check failed, please report this, as it is "
+                        "probably a pytest-valgrind bug. (leak detected for "
+                        "simple allocation)")
+            if new_errors:
+                self.count_leaks = True
+
+            else:
+                self.count_leaks = False
+                print("pytest-valgrind: Reporting memory errors as set up "
+                      "using the `--errors-for-leak-kinds` option of valgrind.")
+
+        self.log_file_name = config.getvalue("valgrind_log")
+        if self.log_file_name:
+            self.log_file = open(self.log_file_name)
         else:
             self.log_file = None
 
         self.prev_leaked = 0
         self.prev_errors = 0
+
+    def pytest_report_header(self, config):
+        info = []
+        info.append(f"pytest-valgrind: logfile={self.log_file_name}")
+        if self.no_memcheck:
+            info.append("Not performing runtime memory leak checks.")
+
+        elif self.count_leaks:
+            info.append("Reporting direct+indirect leaks and ingoring the")
+            info.append("  `--errors-for-leak-kinds` valgrind option.")
+            info.append('  Python always causes "possible" leaks but you can use ')
+            info.append("  `--errors-for-leak-kinds=direct` to hide indirect leaks.)")
+        else:
+            info.append(
+                "Reporting memory leaks as set up using the "
+                "`--errors-for-leak-kinds` valgrind option.")
+
+
+        if self.memcheck_before:
+            info.append("Flushing memory leaks before each test "
+                        "(hide leaks that occurred between tests).")
+
+        return "\npytest-valgrind: ".join(info)
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_pyfunc_call(self, pyfuncitem):
@@ -129,8 +199,11 @@ class ValgrindChecker(object):
 
         outcome = yield
 
-        # Do this before, maybe errors can occur during garbage collection,
-        # and they are probably due to the previous test as well.
+        # Do this before leak/error checking. Errors can occur during garbage
+        # collection. However, there could also be due to things occuring
+        # between two test runs.
+        # Note: We could skip this, especially if there is no leak checking.
+        #       That would probably speed up test execution a lot.
         for i in range(20):
             if gc.collect() == 0:
                 break
@@ -138,20 +211,26 @@ class ValgrindChecker(object):
             # TODO: should print an internal error.
             raise RuntimeError("Garbage collection did not settle!?")
 
-        after_errors = get_valgrind_num_errs()
-        if not self.no_memcheck:
-            after_leaked = do_leak_check()
+        # An error occurred, if the number of valgrind errors increased:
+        error = get_valgrind_num_errs() - self.prev_errors > 0
+
+        if self.no_memcheck:
+            leak = False
+        elif self.count_leaks:
+            # Manually count leaks (not errors reported by valgrind)
+            currently_leaked = do_leak_check()
+            leak = currently_leaked - self.prev_leaked > 0
+            self.prev_leaked = currently_leaked
         else:
-            after_leaked = 0
+            # See if valgrind reports new errors during leak check
+            errors_before_leak_check = get_valgrind_num_errs()
+            do_leak_check()
+            leak = get_valgrind_num_errs() - errors_before_leak_check > 0
 
         print_to_valgrind_log(b"\n" + sep)
 
-        error = after_errors - self.prev_errors > 0
-        leak = after_leaked - self.prev_leaked > 0
-
-        # Need to get the errors again, since leakage will increment it:
+        # Need to get the errors again, because leaks may have added new ones:
         self.prev_errors = get_valgrind_num_errs()
-        self.prev_leaked = after_leaked
 
         # Check for any marks about the test run:
         if any(pyfuncitem.iter_markers("valgrind_known_error")):
