@@ -28,11 +28,8 @@ do_leak_check(PyObject *self, PyObject *args)
     unsigned long leaked, dubious, reachable, suppressed;
 
     VALGRIND_DO_ADDED_LEAK_CHECK;
-
     VALGRIND_COUNT_LEAKS(leaked, dubious, reachable, suppressed);
 
-    /* Flush errors, we just assume they were all leaks. */
-    VALGRIND_COUNT_ERRORS;
     return PyLong_FromUnsignedLong(leaked);
 }
 

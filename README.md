@@ -63,6 +63,10 @@ You should provide a log file in this invocation and pass it into pytest. Otherw
 will be skipped. For example in numpy, typically the floating point errors
 fail to report, which causes test failures.
 
+The first version effectively ignored the ``--errors-for-leak-kinds`` valgrind
+option. In the current version ``--errors-for-leak-kinds=definite`` will work
+(and ignore "indirect" leaks).
+
 Any valgrind error or memory leak occuring *during* the test will lead to the
 test being recorded as *FAILURE*. You will have to search the valgrind log
 file for the specific error.
@@ -117,10 +121,17 @@ Furter notes:
   * If valgrind has bad interaction causing errors during test gathering
     this may hang pytest. In that case, you may use
     `--continue-on-collection-errors` as a quick workaround.
+  * CPython always causes "possible" leaks to implement the garbage
+    collector/circular reference counting.
+    Due to this, we perform a sanity check: if ``obj = object()``
+    reports a "leak" valgrinds ``--errors-for-leak-kinds`` is ignored (the
+    default includes "possible"). ``--errors-for-leak-kinds=definite`` will
+    not be ignored, and possibly there are other ways to make the above
+    check pass.
   * Testing leaks this often slows down testing even more compared to a
     simple run with valgrind.
   * It does not seem too elegant, since a valgrind output file is passed
-    to the pytest as an argument.
+    to the pytest as an argument (I doubt there is a solution for this).
   * If you do not have useful function names in your output maybe you did
     not build a debug build?
   * Valgrind has lots of options, please check them!
@@ -135,9 +146,8 @@ Furter notes:
     cause leaks to behave non-deterministic, or the object that is being leaked
     not correspond to the actual leaked object (since the allocation occured
     originally for another object).
-  * The tool runs the garbage collector before every leak check.
-    This is done only once though (gc runs may need longer to
-    settle, could be fixed to iterate until no change occurs).
+  * The tool runs the garbage collector repeatedly after every single test,
+    this may be very slow.
   * I do not know pytest plugins well (and the documentation is not super
     easy at the time), so a lot of how the pytest things are done can and
     should probably be much done better.
