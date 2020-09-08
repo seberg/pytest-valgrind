@@ -143,7 +143,7 @@ class ValgrindChecker(object):
             info.append("Not performing runtime memory leak checks.")
 
         elif self.count_leaks:
-            info.append("Reporting direct+indirect leaks and ingoring the")
+            info.append("Reporting direct+indirect leaks and ignoring the")
             info.append("  `--errors-for-leak-kinds` valgrind option.")
             info.append('  Python always causes "possible" leaks but you can use ')
             info.append("  `--errors-for-leak-kinds=direct` to hide indirect leaks.)")
